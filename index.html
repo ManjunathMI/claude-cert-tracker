@@ -680,7 +680,7 @@ function render(){
         allNotes = await loadAllNotes();
         input.value = '';
         renderNotesList(key);
-      }catch(e){ console.error(e); alert('Could not save note — check your Supabase config.'); }
+      }catch(e){ console.error(e); alert('Could not save note — check your Supabase config or send an email to immanjunath@outlook.com'); }
     });
   });
 
