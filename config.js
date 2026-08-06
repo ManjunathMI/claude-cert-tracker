@@ -14,8 +14,8 @@
 //      access your Row Level Security rules permit, see the .sql file)
 // ─────────────────────────────────────────────────────────────
 
-const SUPABASE_URL = "YOUR_SUPABASE_PROJECT_URL_HERE";
-const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY_HERE";
+const SUPABASE_URL = https://qiqlfmsrgklkthqrkfef.supabase.co;
+const SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFpcWxmbXNyZ2tsa3RocXJrZmVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5OTY4NzAsImV4cCI6MjEwMTU3Mjg3MH0.BNZXR4XOHgmUWH5a7Lj4A0Htzbd-pAEli3gRYpAqKt0;
 
 // Which plan file to load. Point this at any JSON file that follows
 // the same shape as data/plan.json to reuse this tracker for a
