@@ -26,3 +26,39 @@ const PLAN_URL = "data/plan.json";
 // inside the same Supabase tables. Change this if you fork the repo
 // for a different cohort so your data doesn't mix with anyone else's.
 const ROOM_CODE = "claude-cert-2026";
+
+// ─────────────────────────────────────────────────────────────
+// ACCESS CONTROL
+//
+// Anyone with the link can view the board. To actually appear on it
+// and start tracking progress, a person goes through two steps:
+//
+//   1. They enter the join code below when requesting to join.
+//      This is a first filter, not the real gate — it just keeps
+//      your approval queue free of noise from people who found the
+//      link with no context.
+//   2. Their request sits in Supabase's pending_learners table until
+//      YOU approve them manually (see the README). This is the real
+//      gate. Nobody can approve themselves, no matter what code they
+//      enter — pending_learners has no public read/update access.
+//
+// Once approved, a learner can check off items and leave notes
+// immediately — there's no separate edit-time lock, since approval
+// already established they're meant to be here.
+//
+// To generate the join code hash, open any browser console
+// (F12 → Console) and run:
+//
+//   crypto.subtle.digest("SHA-256", new TextEncoder().encode("yourphrase"))
+//     .then(b => console.log(Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2,"0")).join("")))
+//
+// Paste the resulting hash below. Share the PLAIN phrase with your
+// group separately (chat, not the repo) — only the hash belongs here.
+// ─────────────────────────────────────────────────────────────
+ 
+const JOIN_CODE_HASH = "5136d330a996be754baf55b3efc952246af1d86ace312e536f55572fa148248f";
+ 
+// The question shown in the join popup, alongside the code box.
+// Customize this to whatever fits your group.
+const JOIN_CODE_PROMPT = "Quick check — do you know why you're here? Enter the code Manju gave you:";
+ 
