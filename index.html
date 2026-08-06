@@ -623,7 +623,7 @@ function render(){
         row.innerHTML = `
           <div class="check-pair">
             <button class="me-check ${meDone ? 'done' : ''} ${me ? 'mine' : ''}" data-key="${key}" title="${me ? 'Mark done for ' + me : 'Set your name first'}">${meDone ? '✓' : ''}</button>
-            <button class="partner-check ${partnerDone ? 'done partner' : ''}" disabled title="${partner ? partner + (partnerDone ? ' has done this' : ' hasn\\'t done this yet') : 'Partner not set'}">${partnerDone ? '✓' : ''}</button>
+            <button class="partner-check ${partnerDone ? 'done partner' : ''}" disabled title="${partner ? partner + (partnerDone ? ' has done this' : ' has not done this yet') : 'Partner not set'}"</button>
           </div>
           <div class="item-body">
             <div class="item-title">${tagHtml}<a href="${item.url}" target="_blank" rel="noopener">${item.t}</a></div>
