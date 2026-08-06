@@ -1,0 +1,176 @@
+{
+  "planTitle": "Claude Certified — Associate then Developer Foundations",
+  "planSubtitle": "15 days, 4 hours a day. Every course, quiz, and exam linked below.",
+  "phases": [
+    {
+      "phase": "Phase 1",
+      "title": "Associate Foundations",
+      "goal": "Get the entry-level certification done fast — non-technical, prompting and workflow focused.",
+      "days": [
+        {
+          "day": "Day 1",
+          "title": "Claude 101 + AI Fluency + hands-on",
+          "hours": "4 hrs",
+          "items": [
+            { "t": "Claude 101 — course (12 lectures, ~1 hr video)", "url": "https://anthropic.skilljar.com/claude-101" },
+            { "t": "AI Fluency: Framework & Foundations — course (14 lectures, 1.1 hr video)", "url": "https://anthropic.skilljar.com/ai-fluency-framework-foundations" },
+            { "t": "Hands-on: configure a Project with a knowledge source in claude.ai", "url": "https://claude.ai", "tag": "hands" },
+            { "t": "Review CCAO-F exam domains (prompting, output evaluation, model selection, workflow integration, responsible use)", "url": "https://claude.com/resources/certifications" }
+          ]
+        },
+        {
+          "day": "Day 2",
+          "title": "AI Capabilities + mocks + Associate exam",
+          "hours": "4 hrs",
+          "items": [
+            { "t": "AI Capabilities and Limitations — course (13 lectures, 15 min video)", "url": "https://anthropic.skilljar.com/ai-capabilities-and-limitations" },
+            { "t": "Timed mock exam — 60 Q / 120 min, review every miss", "url": "https://claude.com/resources/certifications", "tag": "hands" },
+            { "t": "Sit the Claude Certified Associate — Foundations exam", "url": "https://claude.com/resources/certifications", "tag": "exam" }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "Phase 2",
+      "title": "Developer Foundations — prerequisites",
+      "goal": "Every official prerequisite course, in the order that builds on itself.",
+      "days": [
+        {
+          "day": "Day 3",
+          "title": "Local setup + Claude Code 101 + Skills/Subagents",
+          "hours": "4 hrs",
+          "items": [
+            { "t": "Finish local dev setup (Node, TypeScript SDK, API key, test script)", "url": "https://platform.claude.com", "tag": "hands" },
+            { "t": "Claude Code 101 — course (12 lectures, 1 hr video)", "url": "https://anthropic.skilljar.com/claude-code-101" },
+            { "t": "Introduction to agent skills — course (6 lectures, 30 min video)", "url": "https://anthropic.skilljar.com/introduction-to-agent-skills" },
+            { "t": "Introduction to subagents — course (4 lectures, 20 min video)", "url": "https://anthropic.skilljar.com/introduction-to-subagents" }
+          ]
+        },
+        {
+          "day": "Day 4",
+          "title": "Claude Code in Action",
+          "hours": "4 hrs",
+          "items": [
+            { "t": "Claude Code in Action — course (15 lectures, 1 hr video, 1 quiz)", "url": "https://anthropic.skilljar.com/claude-code-in-action" },
+            { "t": "Hands-on: refactor a real script + add tests + try subagents", "url": "https://claude.ai/download", "tag": "hands" }
+          ]
+        },
+        {
+          "day": "Day 5",
+          "title": "Claude Platform 101 — part 1",
+          "hours": "4 hrs",
+          "items": [
+            { "t": "Claude Platform 101 — course home", "url": "https://anthropic.skilljar.com/claude-platform-101" },
+            { "t": "Lesson: What is the Claude Developer Platform? / Your first API call / Choosing the right model", "url": "https://anthropic.skilljar.com/claude-platform-101" },
+            { "t": "Lesson: The agent loop explained + What is tool use", "url": "https://anthropic.skilljar.com/claude-platform-101" },
+            { "t": "Hands-on: build the agent loop by hand (no SDK Tool Runner yet)", "url": "https://anthropic.skilljar.com/claude-platform-101", "tag": "hands" }
+          ]
+        },
+        {
+          "day": "Day 6",
+          "title": "Claude Platform 101 — part 2",
+          "hours": "4 hrs",
+          "items": [
+            { "t": "Lesson: What is thinking (extended thinking)", "url": "https://anthropic.skilljar.com/claude-platform-101" },
+            { "t": "Lesson: Built-in tools (web search, code execution, web fetch)", "url": "https://anthropic.skilljar.com/claude-platform-101" },
+            { "t": "Hands-on: wire built-in tools into your test script", "url": "https://platform.claude.com", "tag": "hands" },
+            { "t": "Lesson: Skills + Context management", "url": "https://anthropic.skilljar.com/claude-platform-101" }
+          ]
+        },
+        {
+          "day": "Day 7",
+          "title": "Claude Platform 101 — part 3 + quiz",
+          "hours": "4 hrs",
+          "items": [
+            { "t": "Lesson: What are managed agents? + Building your first managed agent", "url": "https://anthropic.skilljar.com/claude-platform-101" },
+            { "t": "Lesson: Building with Claude Code (standalone lesson)", "url": "https://anthropic.skilljar.com/claude-platform-101" },
+            { "t": "Claude Platform 101 Quiz", "url": "https://anthropic.skilljar.com/claude-platform-101", "tag": "exam" }
+          ]
+        },
+        {
+          "day": "Day 8",
+          "title": "Building with the Claude API — part 1 of 3",
+          "hours": "4 hrs",
+          "items": [
+            { "t": "Building with the Claude API — course (84 lectures, 8.1 hr video, 10 quizzes)", "url": "https://anthropic.skilljar.com/claude-with-the-anthropic-api" },
+            { "t": "Work first third: request/response structure, streaming, system prompts, multi-turn, vision/documents — do every demo yourself", "url": "https://anthropic.skilljar.com/claude-with-the-anthropic-api", "tag": "hands" }
+          ]
+        },
+        {
+          "day": "Day 9",
+          "title": "Building with the Claude API — part 2 of 3",
+          "hours": "4 hrs",
+          "items": [
+            { "t": "Middle third: tool use in depth, structured outputs, extended thinking params, prompt caching, batch processing", "url": "https://anthropic.skilljar.com/claude-with-the-anthropic-api" },
+            { "t": "Focus: token/cost management, workspaces, limits, Console Workbench", "url": "https://anthropic.skilljar.com/claude-with-the-anthropic-api", "tag": "hands" }
+          ]
+        },
+        {
+          "day": "Day 10",
+          "title": "Building with the Claude API — part 3 of 3",
+          "hours": "4 hrs",
+          "items": [
+            { "t": "Final third: evals, guardrails, production patterns, deployment", "url": "https://anthropic.skilljar.com/claude-with-the-anthropic-api" },
+            { "t": "Complete all 10 module quizzes, log weak areas", "url": "https://anthropic.skilljar.com/claude-with-the-anthropic-api", "tag": "exam" }
+          ]
+        },
+        {
+          "day": "Day 11",
+          "title": "Introduction to Model Context Protocol",
+          "hours": "4 hrs",
+          "items": [
+            { "t": "Introduction to Model Context Protocol — course (16 lectures, 1 hr video, 1 quiz)", "url": "https://anthropic.skilljar.com/introduction-to-model-context-protocol" },
+            { "t": "Hands-on: build a simple MCP server + client from scratch in Python", "url": "https://anthropic.skilljar.com/introduction-to-model-context-protocol", "tag": "hands" }
+          ]
+        },
+        {
+          "day": "Day 12",
+          "title": "Model Context Protocol: Advanced Topics",
+          "hours": "4 hrs",
+          "items": [
+            { "t": "Model Context Protocol: Advanced Topics — course (15 lectures, 1.1 hr video, 2 quizzes)", "url": "https://anthropic.skilljar.com/model-context-protocol-advanced-topics" },
+            { "t": "Hands-on: extend your MCP server with resources/prompts, test with Claude Code as client", "url": "https://anthropic.skilljar.com/model-context-protocol-advanced-topics", "tag": "hands" }
+          ]
+        },
+        {
+          "day": "Day 13",
+          "title": "Integration + buffer day",
+          "hours": "4 hrs",
+          "items": [
+            { "t": "Re-run any rushed demo from Days 8–10 (API course is dense)", "url": "https://anthropic.skilljar.com/claude-with-the-anthropic-api", "tag": "hands" },
+            { "t": "Build one end-to-end project: tool use + MCP + a managed-agent-style loop", "url": "https://platform.claude.com", "tag": "hands" },
+            { "t": "Review all quiz scores across the 6 prerequisite courses, list weak domains", "url": "https://anthropic.skilljar.com/" }
+          ]
+        }
+      ]
+    },
+    {
+      "phase": "Phase 3",
+      "title": "Exam readiness",
+      "goal": "Mock exams, targeted review, then the real thing.",
+      "days": [
+        {
+          "day": "Day 14",
+          "title": "Mock exams",
+          "hours": "4 hrs",
+          "items": [
+            { "t": "Full timed mock exam for Developer Foundations, review every wrong answer", "url": "https://claude.com/resources/certifications", "tag": "hands" },
+            { "t": "Second mock exam focused on weak domains", "url": "https://claude.com/resources/certifications", "tag": "hands" },
+            { "t": "Re-watch only the specific weak-domain lecture segments", "url": "https://anthropic.skilljar.com/" }
+          ]
+        },
+        {
+          "day": "Day 15",
+          "title": "Final review + Developer Foundations exam",
+          "hours": "4 hrs",
+          "items": [
+            { "t": "Skim personal notes across all 9 courses", "url": "https://anthropic.skilljar.com/" },
+            { "t": "Sanity-check dev environment: agent loop, tool schemas, MCP primitives", "url": "https://platform.claude.com", "tag": "hands" },
+            { "t": "Light warm-up: 15–20 practice questions, no new material", "url": "https://claude.com/resources/certifications" },
+            { "t": "Sit the Claude Certified Developer — Foundations exam", "url": "https://claude.com/resources/certifications", "tag": "exam" }
+          ]
+        }
+      ]
+    }
+  ]
+}
