@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cert Tracker — pair learning, any Claude course path</title>
-<meta name="description" content="A free, open-source pair-learning progress tracker for Anthropic's Claude courses and certifications.">
+<title>Cert Tracker — group learning, any Claude course path</title>
+<meta name="description" content="A free, open-source group learning-progress tracker for Anthropic's Claude courses and certifications.">
 <style>
   :root{
     --ink:#1c1a17;
@@ -87,7 +87,7 @@
     border-radius:3px;
     background:var(--card);
     color:var(--ink);
-    width:180px;
+    width:170px;
   }
   .who-bar button{
     font-family: 'Courier New', monospace;
@@ -110,49 +110,89 @@
   }
   .who-status b{color:var(--clay);}
 
-  .progress-panel{
+  .board-panel{
     max-width:960px;
     margin:32px auto 0;
     padding:0 24px;
   }
-  .progress-row{
+  .board-head{
     display:flex;
-    gap:16px;
-    flex-wrap:wrap;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:12px;
   }
-  .progress-card{
-    flex:1;
-    min-width:220px;
-    background:var(--card);
-    border:1px solid var(--line);
-    border-radius:6px;
-    padding:16px 20px;
+  .board-head h2{
+    font-weight:400;
+    margin:0;
+    color:var(--ink-soft);
+    font-family:'Courier New', monospace;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    font-size:11px;
   }
-  .progress-card .label{
+  .board-head .board-count{
     font-family:'Courier New', monospace;
     font-size:11px;
-    text-transform:uppercase;
-    letter-spacing:.08em;
     color:var(--ink-soft);
-    margin-bottom:8px;
   }
-  .progress-card .bar-track{
+  .board-list{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:8px;
+    overflow:hidden;
+  }
+  .board-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:12px 18px;
+    border-bottom:1px solid #f0ece1;
+  }
+  .board-row:last-child{border-bottom:none;}
+  .board-row.is-me{background:#fbf3ec;}
+  .board-rank{
+    font-family:'Courier New', monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+    width:20px;
+    flex-shrink:0;
+  }
+  .board-name{
+    font-size:.95rem;
+    width:120px;
+    flex-shrink:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .board-name b{color:var(--clay);}
+  .board-bar-track{
+    flex:1;
     height:8px;
     background:var(--line);
     border-radius:4px;
     overflow:hidden;
-    margin-bottom:8px;
   }
-  .progress-card .bar-fill{
+  .board-bar-fill{
     height:100%;
     background:var(--clay);
     border-radius:4px;
     transition:width .3s ease;
   }
-  .progress-card .count{
+  .board-pct{
     font-family:'Courier New', monospace;
-    font-size:13px;
-    color:var(--ink);
+    font-size:11px;
+    color:var(--ink-soft);
+    width:60px;
+    text-align:right;
+    flex-shrink:0;
+  }
+  .board-empty{
+    padding:24px 18px;
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:.9rem;
+    font-style:italic;
   }
 
   .phase{
@@ -229,13 +269,11 @@
   }
   .item:last-child{border-bottom:none;}
 
-  .check-pair{
-    display:flex;
-    gap:5px;
-    padding-top:2px;
+  .item-check{
     flex-shrink:0;
+    padding-top:2px;
   }
-  .check-pair button{
+  .item-check button{
     width:24px;
     height:24px;
     border-radius:50%;
@@ -252,19 +290,13 @@
     transition:all .15s ease;
     padding:0;
   }
-  .check-pair button.mine{
-    border-color:var(--clay);
-  }
-  .check-pair button.done{
+  .item-check button.mine{border-color:var(--clay);}
+  .item-check button.done{
     background:var(--clay);
     border-color:var(--clay);
     color:#fff;
   }
-  .check-pair button.done.partner{
-    background:var(--gold);
-    border-color:var(--gold);
-  }
-  .check-pair button:hover{opacity:.8;}
+  .item-check button:hover{opacity:.8;}
 
   .item-body{flex:1;min-width:0;}
   .item-body .item-title{
@@ -278,6 +310,13 @@
     border-bottom:1px solid var(--clay-dim);
   }
   .item-body a:hover{border-bottom-color:var(--clay);}
+  .item-done-by{
+    font-family:'Courier New', monospace;
+    font-size:10.5px;
+    color:var(--ink-soft);
+    margin-top:3px;
+  }
+  .item-done-by b{color:var(--clay);}
   .tag{
     display:inline-block;
     font-family:'Courier New', monospace;
@@ -358,9 +397,49 @@
     color:var(--ink-soft);
   }
   .legend span{display:flex;align-items:center;gap:6px;}
-  .dot{width:13px;height:13px;border-radius:50%;display:inline-block;border:1.5px solid var(--line);}
-  .dot.clay{background:var(--clay);border-color:var(--clay);}
-  .dot.gold{background:var(--gold);border-color:var(--gold);}
+  .dot{width:13px;height:13px;border-radius:50%;display:inline-block;border:1.5px solid var(--clay);background:var(--clay);}
+
+  .modal-backdrop{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(28,26,23,.45);
+    z-index:50;
+    align-items:center;
+    justify-content:center;
+  }
+  .modal-backdrop.show{display:flex;}
+  .modal-box{
+    background:var(--card);
+    border-radius:10px;
+    padding:28px 26px;
+    max-width:360px;
+    width:90%;
+    text-align:center;
+  }
+  .modal-box h3{margin:0 0 8px;font-weight:400;font-size:1.15rem;}
+  .modal-box p{color:var(--ink-soft);font-size:.85rem;margin:0 0 16px;line-height:1.5;}
+  .modal-box input{
+    width:100%;
+    font-family:'Courier New', monospace;
+    font-size:14px;
+    padding:10px 12px;
+    border:1px solid var(--line);
+    border-radius:4px;
+    margin-bottom:12px;
+  }
+  .modal-box .modal-buttons{display:flex;gap:8px;justify-content:center;}
+  .modal-box button{
+    font-family:'Courier New', monospace;
+    font-size:12.5px;
+    padding:8px 16px;
+    border-radius:3px;
+    cursor:pointer;
+  }
+  .modal-box .confirm{border:1px solid var(--ink);background:var(--ink);color:var(--paper);}
+  .modal-box .cancel{border:1px solid var(--line);background:var(--card);color:var(--ink-soft);}
+  .modal-error{color:var(--clay);font-size:.8rem;margin-top:-6px;margin-bottom:10px;display:none;}
+  .modal-error.show{display:block;}
 
   footer{
     text-align:center;
@@ -377,13 +456,14 @@
   @media (max-width:600px){
     header h1{font-size:1.7rem;}
     .day-head{flex-direction:column;align-items:flex-start;gap:8px;}
+    .board-name{width:80px;}
   }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="kicker">Free, open-source, pair-learning tracker</div>
+  <div class="kicker">Free, open-source, group learning tracker</div>
   <h1 id="plan-title">Loading plan…</h1>
   <p class="sub" id="plan-subtitle"></p>
 
@@ -394,28 +474,22 @@
   </div>
 
   <div class="who-bar">
-    <input id="name-input" type="text" placeholder="Your first name" maxlength="20">
-    <button id="save-name">Set my name</button>
+    <input id="name-input" type="text" placeholder="Your first name" maxlength="24">
+    <button id="save-name">Request to join</button>
   </div>
-  <div class="who-status" id="who-status">Not set yet — enter your name above to start tracking.</div>
+  <div class="who-status" id="who-status">Not set yet — enter your name above to request access. Anyone can view the board without joining.</div>
 </header>
 
-<div class="progress-panel">
-  <div class="progress-row">
-    <div class="progress-card">
-      <div class="label" id="me-label">You</div>
-      <div class="bar-track"><div class="bar-fill" id="me-bar" style="width:0%"></div></div>
-      <div class="count" id="me-count">0 / 0 done</div>
-    </div>
-    <div class="progress-card">
-      <div class="label" id="partner-label">Partner</div>
-      <div class="bar-track"><div class="bar-fill" id="partner-bar" style="width:0%; background:var(--gold);"></div></div>
-      <div class="count" id="partner-count">0 / 0 done</div>
-    </div>
+<div class="board-panel">
+  <div class="board-head">
+    <h2>Leaderboard</h2>
+    <span class="board-count" id="board-count">0 learners</span>
+  </div>
+  <div class="board-list" id="board-list">
+    <div class="board-empty">No one has joined yet — be the first.</div>
   </div>
   <div class="legend">
-    <span><span class="dot clay"></span> you've completed this</span>
-    <span><span class="dot gold"></span> partner completed this</span>
+    <span><span class="dot"></span> progress bar</span>
     <span><span class="tag exam" style="margin:0;">exam</span> proctored exam day</span>
     <span><span class="tag hands" style="margin:0;">hands-on</span> build it yourself</span>
   </div>
@@ -425,16 +499,38 @@
 
 <footer>
   Open source on <a href="https://github.com" target="_blank">GitHub</a> — fork it for your own course path.<br>
-  Progress and notes sync via Supabase. See <code>config.js</code> to connect your own free instance.
+  Progress and notes sync via Supabase. Anyone with this link can view the board; joining requires admin approval.
 </footer>
+
+<div class="modal-backdrop" id="join-modal">
+  <div class="modal-box">
+    <h3>Before you join…</h3>
+    <p id="join-prompt-text">Quick check — do you know why you're here? Enter the code:</p>
+    <input type="text" id="join-code-input" placeholder="Code">
+    <div class="modal-error" id="join-code-error">That code doesn't match. Try again.</div>
+    <div class="modal-buttons">
+      <button class="cancel" id="join-code-cancel">Cancel</button>
+      <button class="confirm" id="join-code-confirm">Request to join</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="pending-modal">
+  <div class="modal-box">
+    <h3>Request sent 🎉</h3>
+    <p id="pending-text">Your join request is waiting for approval. Once it's approved, refresh this page and you'll appear on the board.</p>
+    <div class="modal-buttons">
+      <button class="confirm" id="pending-ok">Got it</button>
+    </div>
+  </div>
+</div>
 
 <script src="config.js"></script>
 <script>
-let supabase = null;
 let me = null;
-let partner = null;
-let allState = {};   // { itemKey: { name: true } }
-let allNotes = {};   // { itemKey: [{name, text, time}] }
+let allState = {};
+let allNotes = {};
+let allLearners = [];
 let PLAN = null;
 let dbReady = false;
 
@@ -444,95 +540,93 @@ function configIsSet(){
          !SUPABASE_URL.includes('YOUR_SUPABASE') &&
          !SUPABASE_ANON_KEY.includes('YOUR_SUPABASE');
 }
+function joinCodeIsSet(){
+  return typeof JOIN_CODE_HASH === 'string' &&
+         !JOIN_CODE_HASH.includes('PASTE_YOUR');
+}
+async function sha256Hex(text){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(x => x.toString(16).padStart(2,'0')).join('');
+}
 
-// ---------- Supabase REST helpers (no SDK dependency, plain fetch) ----------
 async function sbSelect(table, params){
   const url = `${SUPABASE_URL}/rest/v1/${table}?${params}`;
-  const res = await fetch(url, {
-    headers: {
-      apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`
-    }
-  });
+  const res = await fetch(url, { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } });
   if(!res.ok) throw new Error(`Supabase select failed: ${res.status}`);
   return res.json();
 }
-
 async function sbUpsert(table, row, onConflict){
   const url = `${SUPABASE_URL}/rest/v1/${table}?on_conflict=${onConflict}`;
   const res = await fetch(url, {
     method: 'POST',
-    headers: {
-      apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-      'Content-Type': 'application/json',
-      Prefer: 'resolution=merge-duplicates'
-    },
+    headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
     body: JSON.stringify(row)
   });
   if(!res.ok) throw new Error(`Supabase upsert failed: ${res.status}`);
 }
-
 async function sbInsert(table, row){
   const url = `${SUPABASE_URL}/rest/v1/${table}`;
   const res = await fetch(url, {
     method: 'POST',
-    headers: {
-      apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-      'Content-Type': 'application/json'
-    },
+    headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
     body: JSON.stringify(row)
   });
   if(!res.ok) throw new Error(`Supabase insert failed: ${res.status}`);
 }
 
-// ---------- Local fallback (used if config.js isn't set up yet) ----------
-function localLoad(key, fallback){
-  try{
-    const v = localStorage.getItem(key);
-    return v ? JSON.parse(v) : fallback;
-  }catch(e){ return fallback; }
+function localLoad(key, fallback){ try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }catch(e){ return fallback; } }
+function localSave(key, val){ try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){} }
+
+async function loadPlan(){ const res = await fetch(PLAN_URL); return res.json(); }
+function loadName(){ return localStorage.getItem('cert-tracker-my-name'); }
+function saveName(name){ localStorage.setItem('cert-tracker-my-name', name); }
+
+async function loadLearners(){
+  if(dbReady){
+    const rows = await sbSelect('learners', `room_code=eq.${encodeURIComponent(ROOM_CODE)}&select=learner_name&order=joined_at.asc`);
+    return rows.map(r => r.learner_name);
+  }
+  return localLoad('cert-tracker-learners', []);
 }
-function localSave(key, val){
-  try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){}
+async function joinBoard(name){
+  if(dbReady){
+    await sbUpsert('learners', { room_code: ROOM_CODE, learner_name: name }, 'room_code,learner_name');
+  }else{
+    const list = localLoad('cert-tracker-learners', []);
+    if(!list.includes(name)){ list.push(name); localSave('cert-tracker-learners', list); }
+  }
 }
 
-// ---------- Data loading ----------
-async function loadPlan(){
-  const res = await fetch(PLAN_URL);
-  return res.json();
+async function submitJoinRequest(name){
+  if(dbReady){
+    // Insert-only by design (matches the RLS policy in supabase-setup.sql) —
+    // if this name already has a row, the unique constraint blocks a
+    // duplicate rather than silently resetting an approved/rejected status.
+    await sbInsert('pending_learners', { room_code: ROOM_CODE, learner_name: name, status: 'pending' });
+  }else{
+    // no approval queue in local-only fallback mode — join directly
+    await joinBoard(name);
+  }
 }
 
-async function loadName(){
-  return localStorage.getItem('cert-tracker-my-name');
-}
-async function saveName(name){
-  localStorage.setItem('cert-tracker-my-name', name);
+async function isApproved(name){
+  if(!dbReady) return true;
+  const rows = await sbSelect('learners', `room_code=eq.${encodeURIComponent(ROOM_CODE)}&learner_name=eq.${encodeURIComponent(name)}&select=learner_name`);
+  return rows.length > 0;
 }
 
 async function loadAllProgress(){
   if(dbReady){
     const rows = await sbSelect('progress', `room_code=eq.${encodeURIComponent(ROOM_CODE)}&select=item_key,learner_name,done`);
     const state = {};
-    rows.forEach(r => {
-      if(!state[r.item_key]) state[r.item_key] = {};
-      state[r.item_key][r.learner_name] = r.done;
-    });
+    rows.forEach(r => { if(!state[r.item_key]) state[r.item_key] = {}; state[r.item_key][r.learner_name] = r.done; });
     return state;
   }
   return localLoad('cert-tracker-progress', {});
 }
-
 async function toggleProgress(key, name, newVal){
   if(dbReady){
-    await sbUpsert('progress', {
-      room_code: ROOM_CODE,
-      item_key: key,
-      learner_name: name,
-      done: newVal,
-      updated_at: new Date().toISOString()
-    }, 'room_code,item_key,learner_name');
+    await sbUpsert('progress', { room_code: ROOM_CODE, item_key: key, learner_name: name, done: newVal, updated_at: new Date().toISOString() }, 'room_code,item_key,learner_name');
   }else{
     if(!allState[key]) allState[key] = {};
     allState[key][name] = newVal;
@@ -544,23 +638,14 @@ async function loadAllNotes(){
   if(dbReady){
     const rows = await sbSelect('notes', `room_code=eq.${encodeURIComponent(ROOM_CODE)}&select=item_key,learner_name,note_text,created_at&order=created_at.asc`);
     const notes = {};
-    rows.forEach(r => {
-      if(!notes[r.item_key]) notes[r.item_key] = [];
-      notes[r.item_key].push({ name: r.learner_name, text: r.note_text, time: r.created_at });
-    });
+    rows.forEach(r => { if(!notes[r.item_key]) notes[r.item_key] = []; notes[r.item_key].push({ name: r.learner_name, text: r.note_text, time: r.created_at }); });
     return notes;
   }
   return localLoad('cert-tracker-notes', {});
 }
-
 async function addNote(key, name, text){
   if(dbReady){
-    await sbInsert('notes', {
-      room_code: ROOM_CODE,
-      item_key: key,
-      learner_name: name,
-      note_text: text
-    });
+    await sbInsert('notes', { room_code: ROOM_CODE, item_key: key, learner_name: name, note_text: text });
   }else{
     if(!allNotes[key]) allNotes[key] = [];
     allNotes[key].push({ name, text, time: new Date().toISOString() });
@@ -569,18 +654,34 @@ async function addNote(key, name, text){
 }
 
 function itemKey(pIdx, dIdx, iIdx){ return `p${pIdx}-d${dIdx}-i${iIdx}`; }
+function totalItems(){ let n = 0; PLAN.phases.forEach(ph => ph.days.forEach(d => n += d.items.length)); return n; }
+function doneCountFor(name){ let n = 0; Object.values(allState).forEach(v => { if(v[name]) n++; }); return n; }
+function namesWhoDid(key){ const v = allState[key]; if(!v) return []; return Object.keys(v).filter(n => v[n]); }
 
-function totalItems(){
-  let n = 0;
-  PLAN.phases.forEach(ph => ph.days.forEach(d => n += d.items.length));
-  return n;
-}
+function renderBoard(){
+  const listEl = document.getElementById('board-list');
+  const total = totalItems();
+  document.getElementById('board-count').textContent = `${allLearners.length} learner${allLearners.length === 1 ? '' : 's'}`;
 
-function findPartnerName(){
-  const names = new Set();
-  Object.values(allState).forEach(v => Object.keys(v).forEach(n => names.add(n)));
-  if(me) names.delete(me);
-  return names.size ? Array.from(names)[0] : null;
+  if(!allLearners.length){
+    listEl.innerHTML = `<div class="board-empty">No one has joined yet — be the first.</div>`;
+    return;
+  }
+
+  const rows = allLearners.map(name => ({ name, done: doneCountFor(name) })).sort((a,b) => b.done - a.done);
+
+  listEl.innerHTML = rows.map((r, i) => {
+    const pct = total ? Math.round(r.done/total*100) : 0;
+    const isMe = me && r.name === me;
+    return `
+      <div class="board-row ${isMe ? 'is-me' : ''}">
+        <span class="board-rank">${i+1}.</span>
+        <span class="board-name">${isMe ? `<b>${r.name}</b>` : r.name}</span>
+        <div class="board-bar-track"><div class="board-bar-fill" style="width:${pct}%"></div></div>
+        <span class="board-pct">${r.done}/${total}</span>
+      </div>
+    `;
+  }).join('');
 }
 
 function render(){
@@ -591,10 +692,7 @@ function render(){
     const phaseEl = document.createElement('div');
     phaseEl.className = 'phase';
     phaseEl.innerHTML = `
-      <div class="phase-head">
-        <span class="num">${phase.phase}</span>
-        <h2>${phase.title}</h2>
-      </div>
+      <div class="phase-head"><span class="num">${phase.phase}</span><h2>${phase.title}</h2></div>
       <p class="phase-goal">${phase.goal}</p>
     `;
 
@@ -617,20 +715,21 @@ function render(){
         row.className = 'item';
 
         const meDone = me && allState[key] && allState[key][me];
-        const partnerDone = partner && allState[key] && allState[key][partner];
+        const doneBy = namesWhoDid(key).filter(n => n !== me);
         const tagHtml = item.tag ? `<span class="tag ${item.tag}">${item.tag}</span>` : '';
+        const doneByHtml = doneBy.length ? `<div class="item-done-by">Also done by: <b>${doneBy.join('</b>, <b>')}</b></div>` : '';
 
         row.innerHTML = `
-          <div class="check-pair">
-            <button class="me-check ${meDone ? 'done' : ''} ${me ? 'mine' : ''}" data-key="${key}" title="${me ? 'Mark done for ' + me : 'Set your name first'}">${meDone ? '✓' : ''}</button>
-            <button class="partner-check ${partnerDone ? 'done partner' : ''}" disabled title="${partner ? partner + (partnerDone ? ' has done this' : ' has not done this yet') : 'Partner not set'}"</button>
+          <div class="item-check">
+            <button class="${meDone ? 'done' : ''} ${me ? 'mine' : ''}" data-key="${key}" title="${me ? 'Mark done for ' + me : 'Join the board first'}">${meDone ? '✓' : ''}</button>
           </div>
           <div class="item-body">
             <div class="item-title">${tagHtml}<a href="${item.url}" target="_blank" rel="noopener">${item.t}</a></div>
+            ${doneByHtml}
             <button class="notes-toggle" data-notes-key="${key}">notes</button>
             <div class="notes-box" data-notes-box="${key}">
               <div class="notes-list" data-notes-list="${key}"></div>
-              <textarea placeholder="Leave a note for your partner..." data-notes-input="${key}"></textarea>
+              <textarea placeholder="Leave a note for the group..." data-notes-input="${key}"></textarea>
               <button class="note-save" data-notes-save="${key}">Add note</button>
             </div>
           </div>
@@ -645,16 +744,16 @@ function render(){
     phasesEl.appendChild(phaseEl);
   });
 
-  document.querySelectorAll('.me-check').forEach(btn => {
+  document.querySelectorAll('.item-check button').forEach(btn => {
     btn.addEventListener('click', async () => {
-      if(!me){ alert('Set your name first, at the top of the page.'); return; }
+      if(!me){ alert('Join the board first — enter your name at the top.'); return; }
       const key = btn.dataset.key;
       const current = allState[key] && allState[key][me];
       const newVal = !current;
       if(!allState[key]) allState[key] = {};
       allState[key][me] = newVal;
       render();
-      updateProgress();
+      renderBoard();
       try{ await toggleProgress(key, me, newVal); }catch(e){ console.error(e); }
     });
   });
@@ -674,17 +773,15 @@ function render(){
       const input = document.querySelector(`[data-notes-input="${key}"]`);
       const text = input.value.trim();
       if(!text) return;
-      if(!me){ alert('Set your name first, at the top of the page.'); return; }
+      if(!me){ alert('Join the board first — enter your name at the top.'); return; }
       try{
         await addNote(key, me, text);
         allNotes = await loadAllNotes();
         input.value = '';
         renderNotesList(key);
-      }catch(e){ console.error(e); alert('Could not save note — check your Supabase config or send an email to immanjunath@outlook.com'); }
+      }catch(e){ console.error(e); alert('Could not save note — check your Supabase config.'); }
     });
   });
-
-  updateProgress();
 }
 
 function renderNotesList(key){
@@ -702,22 +799,15 @@ function renderNotesList(key){
   }).join('');
 }
 
-function updateProgress(){
-  const total = totalItems();
-  let meDone = 0, partnerDone = 0;
-  Object.values(allState).forEach(v => {
-    if(me && v[me]) meDone++;
-    if(partner && v[partner]) partnerDone++;
-  });
-
-  document.getElementById('me-label').textContent = me || 'You';
-  document.getElementById('me-bar').style.width = total ? (meDone/total*100)+'%' : '0%';
-  document.getElementById('me-count').textContent = `${meDone} / ${total} done`;
-
-  document.getElementById('partner-label').textContent = partner || 'Partner';
-  document.getElementById('partner-bar').style.width = total ? (partnerDone/total*100)+'%' : '0%';
-  document.getElementById('partner-count').textContent = `${partnerDone} / ${total} done`;
+async function refreshAll(){
+  allLearners = await loadLearners();
+  allState = await loadAllProgress();
+  allNotes = await loadAllNotes();
+  render();
+  renderBoard();
 }
+
+let awaitingApproval = false;
 
 async function init(){
   dbReady = configIsSet();
@@ -727,36 +817,95 @@ async function init(){
   document.getElementById('plan-title').textContent = PLAN.planTitle;
   document.getElementById('plan-subtitle').textContent = PLAN.planSubtitle;
 
-  me = await loadName();
-  allState = await loadAllProgress();
-  allNotes = await loadAllNotes();
-  partner = findPartnerName();
+  me = loadName();
+  await refreshAll();
 
   if(me){
-    document.getElementById('name-input').value = me;
-    document.getElementById('who-status').innerHTML = `Tracking as <b>${me}</b>${partner ? ` — paired with <b>${partner}</b>` : ' — waiting for your partner to set their name'}`;
+    const approved = await isApproved(me);
+    if(approved){
+      document.getElementById('name-input').value = me;
+      document.getElementById('who-status').innerHTML = `Tracking as <b>${me}</b> — ${allLearners.length} learner${allLearners.length === 1 ? '' : 's'} on this board.`;
+    }else{
+      awaitingApproval = true;
+      document.getElementById('name-input').value = me;
+      document.getElementById('who-status').innerHTML = `<b>${me}</b> — your join request is still waiting for approval.`;
+    }
   }
 
-  render();
+  if(JOIN_CODE_PROMPT) document.getElementById('join-prompt-text').textContent = JOIN_CODE_PROMPT;
 
-  document.getElementById('save-name').addEventListener('click', async () => {
+  document.getElementById('save-name').addEventListener('click', () => {
     const val = document.getElementById('name-input').value.trim();
     if(!val) return;
-    me = val;
-    await saveName(me);
-    allState = await loadAllProgress();
-    partner = findPartnerName();
-    document.getElementById('who-status').innerHTML = `Tracking as <b>${me}</b>${partner ? ` — paired with <b>${partner}</b>` : ' — waiting for your partner to set their name'}`;
-    render();
+
+    if(!joinCodeIsSet()){
+      // no join code configured — go straight to the approval queue (or direct join in local mode)
+      doJoinRequest(val);
+      return;
+    }
+
+    document.getElementById('join-code-error').classList.remove('show');
+    document.getElementById('join-code-input').value = '';
+    document.getElementById('join-modal').classList.add('show');
+    document.getElementById('join-code-input').focus();
+    pendingJoinName = val;
   });
 
-  // light polling so both learners see each other's updates without a manual refresh
+  document.getElementById('join-code-confirm').addEventListener('click', attemptJoinCode);
+  document.getElementById('join-code-input').addEventListener('keydown', (e) => { if(e.key === 'Enter') attemptJoinCode(); });
+  document.getElementById('join-code-cancel').addEventListener('click', () => {
+    document.getElementById('join-modal').classList.remove('show');
+    pendingJoinName = null;
+  });
+  document.getElementById('pending-ok').addEventListener('click', () => {
+    document.getElementById('pending-modal').classList.remove('show');
+  });
+
   if(dbReady){
     setInterval(async () => {
-      allState = await loadAllProgress();
-      partner = findPartnerName();
-      render();
+      await refreshAll();
+      if(awaitingApproval && me){
+        const approved = await isApproved(me);
+        if(approved){
+          awaitingApproval = false;
+          document.getElementById('who-status').innerHTML = `Tracking as <b>${me}</b> — you're approved! ${allLearners.length} learner${allLearners.length === 1 ? '' : 's'} on this board.`;
+        }
+      }
     }, 15000);
+  }
+}
+
+let pendingJoinName = null;
+
+async function attemptJoinCode(){
+  const val = document.getElementById('join-code-input').value;
+  const hash = await sha256Hex(val);
+  if(hash === JOIN_CODE_HASH){
+    document.getElementById('join-modal').classList.remove('show');
+    const name = pendingJoinName;
+    pendingJoinName = null;
+    doJoinRequest(name);
+  }else{
+    document.getElementById('join-code-error').classList.add('show');
+  }
+}
+
+async function doJoinRequest(name){
+  me = name;
+  saveName(me);
+  try{
+    await submitJoinRequest(me);
+    if(dbReady){
+      awaitingApproval = true;
+      document.getElementById('who-status').innerHTML = `<b>${me}</b> — your join request is waiting for approval.`;
+      document.getElementById('pending-modal').classList.add('show');
+    }else{
+      await refreshAll();
+      document.getElementById('who-status').innerHTML = `Tracking as <b>${me}</b> — ${allLearners.length} learner${allLearners.length === 1 ? '' : 's'} on this board.`;
+    }
+  }catch(e){
+    console.error(e);
+    alert('Could not submit join request — check your Supabase config.');
   }
 }
 
