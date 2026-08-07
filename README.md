@@ -1,6 +1,6 @@
 # Claude Cert Tracker
 
-A free, open-source group learning tracker for Anthropic's Claude courses and certifications. Any number of learners request to join one shared board, get approved by an admin, check off lessons as they finish them, and leave notes for each other — all synced live on a public leaderboard.
+A free, open-source group learning tracker for Anthropic's Claude courses and certifications. Any number of learners request access on a welcome page, get approved by an admin, then track lessons and leave notes for each other on a shared leaderboard.
 
 Built to prepare for the **Claude Certified Associate — Foundations** and **Claude Certified Developer — Foundations** certifications, but the course plan is a swappable JSON file, so it works for any learning path.
 
@@ -10,12 +10,25 @@ Built to prepare for the **Claude Certified Associate — Foundations** and **Cl
 
 Anthropic's course catalog (anthropic.skilljar.com) has no built-in way for a group to study together and see everyone's progress. This fills that gap with:
 
+- A welcome page that explains what the board is, collects a unique name, and gathers feedback on whether learners would want this for other courses
 - A day-by-day plan with direct links to every course, quiz, and exam
 - A leaderboard listing every approved learner, ranked by lessons completed
-- New learners request to join; they only appear on the board once the admin approves them directly in Supabase — no extra admin panel needed
+- New learners request to join; they only reach the board once the admin approves them directly in Supabase — no extra admin panel needed
 - A notes thread per lesson, for blockers or questions
-- Anyone with the link can view the whole board without joining
 - Zero backend to run yourself — hosted free on GitHub Pages, synced free on Supabase
+
+## Two pages, on purpose
+
+| Page | What it does |
+|---|---|
+| `index.html` | Welcome page. Explains the project, takes a name, runs the join flow, collects feedback. Nothing here requires approval to see. |
+| `tracker.html` | The actual board. Only reachable with `?name=YourName` in the URL, and only renders content after a **live** check against Supabase confirms that name is approved — every single visit, no exceptions. |
+
+**There is deliberately no "remember me."** Nothing about who you are is stored in the browser (no cookies, no `localStorage`) — every time you open the tracker, it re-checks your name against the database in real time. If your name is already approved, you're in immediately with no extra step. If it's new, you go through the join flow again. This means:
+
+- Clearing your browser cache changes nothing — you just type your name again next time.
+- Two different people can never silently collide on the same name — names are checked for uniqueness against both the approved roster and the pending queue before a join request is even submitted.
+- Approval status lives entirely in Supabase, which is the only source of truth.
 
 ## Stack
 
@@ -25,14 +38,13 @@ Anthropic's course catalog (anthropic.skilljar.com) has no built-in way for a gr
 
 ## How access works, in order
 
-This app has two checkpoints between "found the link" and "actively tracking progress":
-
 | # | Checkpoint | Required? | Controlled by |
 |---|---|---|---|
-| 1 | **Join code** — shown before someone can submit a request to join | Optional, recommended | `JOIN_CODE_HASH` in `config.js` |
-| 2 | **Admin approval** — every join request sits in a queue until the admin approves it | Always on, not configurable | You, working directly in Supabase |
+| 1 | **Join code** — shown on the welcome page before someone can submit a request | Optional, recommended | `JOIN_CODE_HASH` in `config.js` |
+| 2 | **Admin approval** — every join request sits in a queue until approved | Always on, not configurable | You, working directly in Supabase |
+| 3 | **Live name check** — every visit to `tracker.html` re-verifies approval, with no caching | Always on | Automatic, via `check_learner_status()` in Supabase |
 
-Checkpoint 2 is the real gate: `pending_learners` has no public read or update policy, so nobody can approve themselves no matter what code they enter. Checkpoint 1 just keeps that approval queue from filling with noise. Once someone is approved, they can check off items and leave notes immediately — there's no separate lock at edit time, since approval already established they're meant to be here.
+Checkpoint 2 is the real gate: the pending queue has no public read or update access, so nobody can approve themselves no matter what code they enter. Checkpoint 1 just keeps that queue free of noise. Checkpoint 3 means approval is checked fresh every time, not trusted from a prior visit.
 
 ## Setup (10 minutes, all free)
 
@@ -47,7 +59,7 @@ cd claude-cert-tracker
 
 1. Go to [supabase.com](https://supabase.com) → sign in with GitHub → New project
 2. Any name/region, free tier is enough
-3. Once created, open the **SQL Editor** and run everything in [`supabase-setup.sql`](./supabase-setup.sql)
+3. Once created, open the **SQL Editor** and run everything in [`supabase-setup.sql`](./supabase-setup.sql) — this creates the tables, the security policies, and two small functions (`is_name_taken`, `check_learner_status`) the app uses to check names without exposing the pending queue
 4. Go to **Project Settings → API** and copy:
    - **Project URL**
    - **anon public** key
@@ -102,7 +114,7 @@ insert into learners (room_code, learner_name)
 select room_code, learner_name from moved;
 ```
 
-Their name now appears on the public board immediately. Their browser checks for approval automatically every 15 seconds, so they don't need to do anything once you've approved them — just wait, or refresh.
+They can now type their name on the welcome page and reach the board immediately — no waiting, no refresh trick needed, since the check happens live.
 
 To reject someone instead:
 
@@ -115,11 +127,15 @@ where learner_name = 'Their Name' and room_code = 'claude-cert-2026';
 
 Repo → **Settings → Pages** → Source: `main` branch, `/ (root)` folder → Save.
 
-Your tracker is now live at `https://YOUR_USERNAME.github.io/claude-cert-tracker/`.
+Your welcome page is now live at `https://YOUR_USERNAME.github.io/claude-cert-tracker/`.
 
 ### 7. Share the link
 
-Send it to your study group, along with the join code if you set one. Each person requests to join, you approve them from Supabase, and they appear on the leaderboard.
+Send the base URL (not `tracker.html` directly) to your study group, along with the join code if you set one. Each person lands on the welcome page, enters a unique name, requests to join if they're new, and you approve them from Supabase.
+
+## Reading feedback
+
+Feedback submitted on the welcome page goes into the `feedback` table, readable only by you in Supabase's **Table Editor → feedback**. It's never shown publicly anywhere in the app.
 
 ## Using this for a different course path
 
@@ -128,10 +144,12 @@ Edit [`data/plan.json`](./data/plan.json) — it's a plain array of phases → d
 ## Project structure
 
 ```
-├── index.html          # the whole app — UI, rendering, Supabase calls
-├── config.js            # your Supabase credentials + access control + plan pointer (edit this)
-├── data/plan.json        # the course plan — swap this for any learning path
-├── supabase-setup.sql   # run once to create the tables + security rules
+├── index.html          # welcome page — explains the project, name entry, join flow, feedback
+├── tracker.html         # the board — gated by a live approval check, no client-side caching
+├── shared.js             # Supabase helper functions used by both pages
+├── config.js             # your Supabase credentials + access control + plan pointer (edit this)
+├── data/plan.json          # the course plan — swap this for any learning path
+├── supabase-setup.sql     # run once to create the tables, policies, and helper functions
 └── README.md
 ```
 
@@ -139,7 +157,8 @@ Edit [`data/plan.json`](./data/plan.json) — it's a plain array of phases → d
 
 - The Supabase anon key is meant to be public — Supabase's Row Level Security policies are the actual access boundary, not secrecy of the key. This is normal and expected for client-side apps.
 - The join code (checkpoint 1) is light protection, not strong security: it's checked client-side and its hash lives in a public file. It filters out casual/accidental access, not a determined attacker.
-- The approval queue (checkpoint 2) is the strongest control here: `pending_learners` has no public read or update policy, so a visitor can submit a request but can never read the queue, see other pending names, or approve themselves — only you, working directly in Supabase, can move someone from pending to approved.
+- The approval queue (checkpoint 2) is the strongest control: `pending_learners` has no public read or update policy, so a visitor can submit a request but can never read the queue, see other pending names, or approve themselves.
+- Name uniqueness and approval status are both checked through dedicated Postgres functions (`is_name_taken`, `check_learner_status`) rather than exposing the pending queue directly — these return only a true/false or status string, never row contents.
 - If you need real access control beyond this, add [Supabase Auth](https://supabase.com/docs/guides/auth) instead.
 
 ## License

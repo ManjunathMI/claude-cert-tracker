@@ -60,5 +60,5 @@ const JOIN_CODE_HASH = "5136d330a996be754baf55b3efc952246af1d86ace312e536f55572f
  
 // The question shown in the join popup, alongside the code box.
 // Customize this to whatever fits your group.
-const JOIN_CODE_PROMPT = "Quick check — do you know why you're here? Enter the code Manju gave you:";
+const JOIN_CODE_PROMPT = "Quick check — do you know why you're here? Enter the cheat code gave you were shared ;) ";
  

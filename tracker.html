@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cert Tracker — board</title>
+<meta name="description" content="Live progress board for Anthropic's Claude course certifications.">
+<style>
+  :root{
+    --ink:#1c1a17;
+    --ink-soft:#5b564d;
+    --paper:#faf7f0;
+    --card:#ffffff;
+    --line:#e4ddd0;
+    --clay:#b5502e;
+    --clay-dim:#e9c7ba;
+    --moss:#4c6b4f;
+    --moss-dim:#d7e3d3;
+    --gold:#a9822c;
+    --gold-dim:#ecdcb2;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+    background:var(--paper);
+    color:var(--ink);
+    padding:0 0 4rem;
+  }
+  .wrap{max-width:960px;margin:0 auto;padding:0 24px;}
+
+  header{
+    padding:40px 24px 32px;
+    border-bottom:1px solid var(--line);
+    text-align:center;
+  }
+  header .kicker{
+    font-family: 'Courier New', monospace;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    font-size:12px;
+    color:var(--clay);
+    margin-bottom:14px;
+  }
+  header h1{
+    font-size:2.2rem;
+    font-weight:400;
+    line-height:1.15;
+    margin:0 0 10px;
+  }
+  header p.sub{
+    color:var(--ink-soft);
+    font-size:1rem;
+    max-width:620px;
+    margin:0 auto;
+    line-height:1.6;
+  }
+  .who-line{
+    margin-top:18px;
+    font-family:'Courier New', monospace;
+    font-size:12.5px;
+    color:var(--ink-soft);
+  }
+  .who-line b{color:var(--clay);}
+  .who-line a{color:var(--ink-soft);text-decoration:underline;text-decoration-color:var(--line);}
+
+  .gate-screen{
+    max-width:480px;
+    margin:80px auto;
+    text-align:center;
+    padding:0 24px;
+  }
+  .gate-screen .icon{font-size:2.4rem;margin-bottom:16px;}
+  .gate-screen h2{font-size:1.4rem;font-weight:400;margin:0 0 12px;}
+  .gate-screen p{color:var(--ink-soft);font-size:.95rem;line-height:1.6;margin:0 0 22px;}
+  .gate-screen a.button{
+    display:inline-block;
+    font-family:'Courier New', monospace;
+    font-size:13px;
+    padding:11px 22px;
+    border:1px solid var(--ink);
+    background:var(--ink);
+    color:var(--paper);
+    border-radius:6px;
+    text-decoration:none;
+  }
+
+  #app-content{display:none;}
+  #app-content.show{display:block;}
+
+  .board-panel{
+    max-width:960px;
+    margin:32px auto 0;
+    padding:0 24px;
+  }
+  .board-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:12px;
+  }
+  .board-head h2{
+    font-weight:400;
+    margin:0;
+    color:var(--ink-soft);
+    font-family:'Courier New', monospace;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    font-size:11px;
+  }
+  .board-head .board-count{
+    font-family:'Courier New', monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+  }
+  .board-list{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:8px;
+    overflow:hidden;
+  }
+  .board-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:12px 18px;
+    border-bottom:1px solid #f0ece1;
+  }
+  .board-row:last-child{border-bottom:none;}
+  .board-row.is-me{background:#fbf3ec;}
+  .board-rank{
+    font-family:'Courier New', monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+    width:20px;
+    flex-shrink:0;
+  }
+  .board-name{
+    font-size:.95rem;
+    width:120px;
+    flex-shrink:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .board-name b{color:var(--clay);}
+  .board-bar-track{
+    flex:1;
+    height:8px;
+    background:var(--line);
+    border-radius:4px;
+    overflow:hidden;
+  }
+  .board-bar-fill{
+    height:100%;
+    background:var(--clay);
+    border-radius:4px;
+    transition:width .3s ease;
+  }
+  .board-pct{
+    font-family:'Courier New', monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+    width:60px;
+    text-align:right;
+    flex-shrink:0;
+  }
+  .board-empty{
+    padding:24px 18px;
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:.9rem;
+    font-style:italic;
+  }
+
+  .phase{margin:56px 0 0;}
+  .phase-head{
+    display:flex;
+    align-items:baseline;
+    gap:16px;
+    margin-bottom:6px;
+    padding-bottom:10px;
+    border-bottom:2px solid var(--ink);
+  }
+  .phase-head .num{
+    font-family:'Courier New', monospace;
+    font-size:13px;
+    color:var(--clay);
+    letter-spacing:.08em;
+  }
+  .phase-head h2{font-size:1.4rem;font-weight:400;margin:0;}
+  .phase-goal{color:var(--ink-soft);font-size:.95rem;margin:10px 0 24px;font-style:italic;}
+
+  .day{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:8px;
+    margin-bottom:18px;
+    overflow:hidden;
+  }
+  .day-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:16px 20px;
+    background:#f3efe5;
+    border-bottom:1px solid var(--line);
+  }
+  .day-head .day-title{font-size:1.05rem;}
+  .day-head .day-title b{font-weight:600;color:var(--clay);}
+  .day-hours{
+    font-family:'Courier New', monospace;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:3px 10px;
+    white-space:nowrap;
+  }
+
+  .item-list{padding:6px 0;}
+  .item{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    padding:12px 20px;
+    border-bottom:1px solid #f0ece1;
+  }
+  .item:last-child{border-bottom:none;}
+
+  .item-check{flex-shrink:0;padding-top:2px;}
+  .item-check button{
+    width:24px;
+    height:24px;
+    border-radius:50%;
+    border:1.5px solid var(--line);
+    background:var(--card);
+    cursor:pointer;
+    font-family:'Courier New', monospace;
+    font-size:11px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:transparent;
+    transition:all .15s ease;
+    padding:0;
+  }
+  .item-check button.mine{border-color:var(--clay);}
+  .item-check button.done{background:var(--clay);border-color:var(--clay);color:#fff;}
+  .item-check button:hover{opacity:.8;}
+
+  .item-body{flex:1;min-width:0;}
+  .item-body .item-title{font-size:.98rem;line-height:1.4;margin-bottom:3px;}
+  .item-body a{color:var(--clay);text-decoration:none;border-bottom:1px solid var(--clay-dim);}
+  .item-body a:hover{border-bottom-color:var(--clay);}
+  .item-done-by{font-family:'Courier New', monospace;font-size:10.5px;color:var(--ink-soft);margin-top:3px;}
+  .item-done-by b{color:var(--clay);}
+  .tag{
+    display:inline-block;
+    font-family:'Courier New', monospace;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    padding:2px 7px;
+    border-radius:3px;
+    margin-right:6px;
+    background:var(--moss-dim);
+    color:var(--moss);
+  }
+  .tag.exam{background:var(--gold-dim);color:var(--gold);}
+  .tag.hands{background:var(--clay-dim);color:var(--clay);}
+
+  .notes-toggle{
+    background:none;
+    border:none;
+    font-family:'Courier New', monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+    cursor:pointer;
+    padding:2px 0;
+    text-decoration:underline;
+    text-decoration-color:var(--line);
+  }
+  .notes-toggle:hover{color:var(--clay);}
+  .notes-box{margin-top:8px;display:none;}
+  .notes-box.open{display:block;}
+  .notes-box textarea{
+    width:100%;
+    min-height:52px;
+    font-family: Georgia, serif;
+    font-size:13px;
+    line-height:1.5;
+    padding:8px 10px;
+    border:1px solid var(--line);
+    border-radius:4px;
+    background:var(--paper);
+    color:var(--ink);
+    resize:vertical;
+  }
+  .notes-box .note-entry{
+    font-size:12.5px;
+    padding:6px 0;
+    border-bottom:1px solid #f0ece1;
+    line-height:1.5;
+  }
+  .notes-box .note-entry:last-of-type{border-bottom:none;}
+  .notes-box .note-entry b{color:var(--clay);}
+  .notes-box .note-meta{
+    font-family:'Courier New', monospace;
+    font-size:10px;
+    color:var(--ink-soft);
+    display:block;
+    margin-top:2px;
+  }
+  .notes-box .note-save{
+    margin-top:6px;
+    font-family:'Courier New', monospace;
+    font-size:11px;
+    padding:5px 12px;
+    border:1px solid var(--ink);
+    background:var(--card);
+    border-radius:3px;
+    cursor:pointer;
+  }
+  .notes-box .note-save:hover{background:var(--ink);color:var(--paper);}
+
+  .legend{
+    display:flex;
+    gap:22px;
+    justify-content:center;
+    flex-wrap:wrap;
+    margin:14px 0 0;
+    font-family:'Courier New', monospace;
+    font-size:11.5px;
+    color:var(--ink-soft);
+  }
+  .legend span{display:flex;align-items:center;gap:6px;}
+  .dot{width:13px;height:13px;border-radius:50%;display:inline-block;border:1.5px solid var(--clay);background:var(--clay);}
+
+  footer{
+    text-align:center;
+    margin-top:60px;
+    padding-top:28px;
+    border-top:1px solid var(--line);
+    color:var(--ink-soft);
+    font-size:.85rem;
+    font-family:'Courier New', monospace;
+    line-height:1.8;
+  }
+  footer a{color:var(--clay);}
+
+  @media (max-width:600px){
+    header h1{font-size:1.7rem;}
+    .day-head{flex-direction:column;align-items:flex-start;gap:8px;}
+    .board-name{width:80px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="gate-screen" id="gate-checking">
+  <div class="icon">🔎</div>
+  <h2>Checking access…</h2>
+  <p>One moment while we confirm you're approved for this board.</p>
+</div>
+
+<div class="gate-screen" id="gate-denied" style="display:none;">
+  <div class="icon">🔒</div>
+  <h2>Not approved yet</h2>
+  <p id="gate-denied-text">This name hasn't been approved for the board yet.</p>
+  <a class="button" href="index.html">Go to welcome page</a>
+</div>
+
+<div id="app-content">
+  <header>
+    <div class="kicker">Free, open-source, group learning tracker</div>
+    <h1 id="plan-title">Loading plan…</h1>
+    <p class="sub" id="plan-subtitle"></p>
+    <div class="who-line">Viewing as <b id="who-name"></b> — <a href="index.html">not you?</a></div>
+  </header>
+
+  <div class="board-panel">
+    <div class="board-head">
+      <h2>Leaderboard</h2>
+      <span class="board-count" id="board-count">0 learners</span>
+    </div>
+    <div class="board-list" id="board-list">
+      <div class="board-empty">No one has joined yet — be the first.</div>
+    </div>
+    <div class="legend">
+      <span><span class="dot"></span> progress bar</span>
+      <span><span class="tag exam" style="margin:0;">exam</span> proctored exam day</span>
+      <span><span class="tag hands" style="margin:0;">hands-on</span> build it yourself</span>
+    </div>
+  </div>
+
+  <div class="wrap" id="phases"></div>
+
+  <footer>
+    Open source on <a href="https://github.com" target="_blank">GitHub</a> — fork it for your own course path.<br>
+    Progress and notes sync via Supabase.
+  </footer>
+</div>
+
+<script src="config.js"></script>
+<script src="shared.js"></script>
+<script>
+let me = null;
+let allState = {};
+let allNotes = {};
+let allLearners = [];
+let PLAN = null;
+let dbReady = false;
+
+async function loadPlan(){ const res = await fetch(PLAN_URL); return res.json(); }
+
+async function loadLearners(){
+  if(dbReady){
+    const rows = await sbSelect('learners', `room_code=eq.${encodeURIComponent(ROOM_CODE)}&select=learner_name&order=joined_at.asc`);
+    return rows.map(r => r.learner_name);
+  }
+  return localLoad('cert-tracker-learners', []);
+}
+
+async function loadAllProgress(){
+  if(dbReady){
+    const rows = await sbSelect('progress', `room_code=eq.${encodeURIComponent(ROOM_CODE)}&select=item_key,learner_name,done`);
+    const state = {};
+    rows.forEach(r => { if(!state[r.item_key]) state[r.item_key] = {}; state[r.item_key][r.learner_name] = r.done; });
+    return state;
+  }
+  return localLoad('cert-tracker-progress', {});
+}
+async function toggleProgress(key, name, newVal){
+  if(dbReady){
+    await sbUpsert('progress', { room_code: ROOM_CODE, item_key: key, learner_name: name, done: newVal, updated_at: new Date().toISOString() }, 'room_code,item_key,learner_name');
+  }else{
+    if(!allState[key]) allState[key] = {};
+    allState[key][name] = newVal;
+    localSave('cert-tracker-progress', allState);
+  }
+}
+
+async function loadAllNotes(){
+  if(dbReady){
+    const rows = await sbSelect('notes', `room_code=eq.${encodeURIComponent(ROOM_CODE)}&select=item_key,learner_name,note_text,created_at&order=created_at.asc`);
+    const notes = {};
+    rows.forEach(r => { if(!notes[r.item_key]) notes[r.item_key] = []; notes[r.item_key].push({ name: r.learner_name, text: r.note_text, time: r.created_at }); });
+    return notes;
+  }
+  return localLoad('cert-tracker-notes', {});
+}
+async function addNote(key, name, text){
+  if(dbReady){
+    await sbInsert('notes', { room_code: ROOM_CODE, item_key: key, learner_name: name, note_text: text });
+  }else{
+    if(!allNotes[key]) allNotes[key] = [];
+    allNotes[key].push({ name, text, time: new Date().toISOString() });
+    localSave('cert-tracker-notes', allNotes);
+  }
+}
+
+function itemKey(pIdx, dIdx, iIdx){ return `p${pIdx}-d${dIdx}-i${iIdx}`; }
+function totalItems(){ let n = 0; PLAN.phases.forEach(ph => ph.days.forEach(d => n += d.items.length)); return n; }
+function doneCountFor(name){ let n = 0; Object.values(allState).forEach(v => { if(v[name]) n++; }); return n; }
+function namesWhoDid(key){ const v = allState[key]; if(!v) return []; return Object.keys(v).filter(n => v[n]); }
+
+function renderBoard(){
+  const listEl = document.getElementById('board-list');
+  const total = totalItems();
+  document.getElementById('board-count').textContent = `${allLearners.length} learner${allLearners.length === 1 ? '' : 's'}`;
+
+  if(!allLearners.length){
+    listEl.innerHTML = `<div class="board-empty">No one has joined yet — be the first.</div>`;
+    return;
+  }
+
+  const rows = allLearners.map(name => ({ name, done: doneCountFor(name) })).sort((a,b) => b.done - a.done);
+
+  listEl.innerHTML = rows.map((r, i) => {
+    const pct = total ? Math.round(r.done/total*100) : 0;
+    const isMe = me && r.name === me;
+    return `
+      <div class="board-row ${isMe ? 'is-me' : ''}">
+        <span class="board-rank">${i+1}.</span>
+        <span class="board-name">${isMe ? `<b>${r.name}</b>` : r.name}</span>
+        <div class="board-bar-track"><div class="board-bar-fill" style="width:${pct}%"></div></div>
+        <span class="board-pct">${r.done}/${total}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+function render(){
+  const phasesEl = document.getElementById('phases');
+  phasesEl.innerHTML = '';
+
+  PLAN.phases.forEach((phase, pIdx) => {
+    const phaseEl = document.createElement('div');
+    phaseEl.className = 'phase';
+    phaseEl.innerHTML = `
+      <div class="phase-head"><span class="num">${phase.phase}</span><h2>${phase.title}</h2></div>
+      <p class="phase-goal">${phase.goal}</p>
+    `;
+
+    phase.days.forEach((day, dIdx) => {
+      const dayEl = document.createElement('div');
+      dayEl.className = 'day';
+      dayEl.innerHTML = `
+        <div class="day-head">
+          <div class="day-title"><b>${day.day}</b> — ${day.title}</div>
+          <div class="day-hours">${day.hours}</div>
+        </div>
+      `;
+
+      const list = document.createElement('div');
+      list.className = 'item-list';
+
+      day.items.forEach((item, iIdx) => {
+        const key = itemKey(pIdx, dIdx, iIdx);
+        const row = document.createElement('div');
+        row.className = 'item';
+
+        const meDone = me && allState[key] && allState[key][me];
+        const doneBy = namesWhoDid(key).filter(n => n !== me);
+        const tagHtml = item.tag ? `<span class="tag ${item.tag}">${item.tag}</span>` : '';
+        const doneByHtml = doneBy.length ? `<div class="item-done-by">Also done by: <b>${doneBy.join('</b>, <b>')}</b></div>` : '';
+
+        row.innerHTML = `
+          <div class="item-check">
+            <button class="${meDone ? 'done' : ''} ${me ? 'mine' : ''}" data-key="${key}" title="Mark done for ${me}">${meDone ? '✓' : ''}</button>
+          </div>
+          <div class="item-body">
+            <div class="item-title">${tagHtml}<a href="${item.url}" target="_blank" rel="noopener">${item.t}</a></div>
+            ${doneByHtml}
+            <button class="notes-toggle" data-notes-key="${key}">notes</button>
+            <div class="notes-box" data-notes-box="${key}">
+              <div class="notes-list" data-notes-list="${key}"></div>
+              <textarea placeholder="Leave a note for the group..." data-notes-input="${key}"></textarea>
+              <button class="note-save" data-notes-save="${key}">Add note</button>
+            </div>
+          </div>
+        `;
+        list.appendChild(row);
+      });
+
+      dayEl.appendChild(list);
+      phaseEl.appendChild(dayEl);
+    });
+
+    phasesEl.appendChild(phaseEl);
+  });
+
+  document.querySelectorAll('.item-check button').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const key = btn.dataset.key;
+      const current = allState[key] && allState[key][me];
+      const newVal = !current;
+      if(!allState[key]) allState[key] = {};
+      allState[key][me] = newVal;
+      render();
+      renderBoard();
+      try{ await toggleProgress(key, me, newVal); }catch(e){ console.error(e); }
+    });
+  });
+
+  document.querySelectorAll('.notes-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.notesKey;
+      const box = document.querySelector(`[data-notes-box="${key}"]`);
+      box.classList.toggle('open');
+      if(box.classList.contains('open')) renderNotesList(key);
+    });
+  });
+
+  document.querySelectorAll('[data-notes-save]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const key = btn.dataset.notesSave;
+      const input = document.querySelector(`[data-notes-input="${key}"]`);
+      const text = input.value.trim();
+      if(!text) return;
+      try{
+        await addNote(key, me, text);
+        allNotes = await loadAllNotes();
+        input.value = '';
+        renderNotesList(key);
+      }catch(e){ console.error(e); alert('Could not save note — check your Supabase config.'); }
+    });
+  });
+}
+
+function renderNotesList(key){
+  const list = document.querySelector(`[data-notes-list="${key}"]`);
+  if(!list) return;
+  const notes = allNotes[key] || [];
+  if(!notes.length){
+    list.innerHTML = `<div class="note-entry" style="color:var(--ink-soft);font-style:italic;">No notes yet.</div>`;
+    return;
+  }
+  list.innerHTML = notes.map(n => {
+    const d = new Date(n.time);
+    const when = d.toLocaleDateString(undefined, {month:'short', day:'numeric'}) + ' ' + d.toLocaleTimeString(undefined, {hour:'2-digit', minute:'2-digit'});
+    return `<div class="note-entry"><b>${n.name}</b> — ${n.text}<span class="note-meta">${when}</span></div>`;
+  }).join('');
+}
+
+async function refreshAll(){
+  allLearners = await loadLearners();
+  allState = await loadAllProgress();
+  allNotes = await loadAllNotes();
+  render();
+  renderBoard();
+}
+
+function getNameFromUrl(){
+  const params = new URLSearchParams(window.location.search);
+  return (params.get('name') || '').trim();
+}
+
+async function init(){
+  dbReady = configIsSet();
+  me = getNameFromUrl();
+
+  if(!me){
+    window.location.href = 'index.html';
+    return;
+  }
+
+  if(dbReady){
+    try{
+      const status = await checkLearnerStatus(me);
+      if(status !== 'approved'){
+        document.getElementById('gate-checking').style.display = 'none';
+        document.getElementById('gate-denied').style.display = 'block';
+        document.getElementById('gate-denied-text').textContent =
+          status === 'pending' ? `${me}'s request is still waiting for approval.` :
+          status === 'rejected' ? `${me} was not approved for this board.` :
+          `${me} hasn't requested access yet.`;
+        return;
+      }
+    }catch(e){
+      console.error(e);
+      document.getElementById('gate-checking').style.display = 'none';
+      document.getElementById('gate-denied').style.display = 'block';
+      document.getElementById('gate-denied-text').textContent = 'Could not verify access — check your Supabase config.';
+      return;
+    }
+  }
+
+  document.getElementById('gate-checking').style.display = 'none';
+  document.getElementById('app-content').classList.add('show');
+  document.getElementById('who-name').textContent = me;
+
+  PLAN = await loadPlan();
+  document.getElementById('plan-title').textContent = PLAN.planTitle;
+  document.getElementById('plan-subtitle').textContent = PLAN.planSubtitle;
+
+  await refreshAll();
+
+  if(dbReady){
+    setInterval(refreshAll, 15000);
+  }
+}
+
+init();
+</script>
+
+</body>
+</html>
